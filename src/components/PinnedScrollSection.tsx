@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { gsap } from "../lib/gsap";
 import { usePinnedScrollCapable } from "../hooks/usePinnedScrollCapable";
@@ -14,24 +14,44 @@ type PinnedScrollSectionProps = {
   variant: "crack" | "break";
   title: string;
   stops: ScrollStop[];
-  /** Text column side on desktop; the seam visual takes the other side. */
+  /** Text column side on desktop; the visual takes the other side. */
   textSide?: "left" | "right";
+  /** Overrides the default abstract FissureSeam visual in the pinned stage. */
+  visual?: ReactNode;
+  /** Overrides the default static FissureSeam visual in the mobile/reduced-motion fallback. */
+  fallbackVisual?: ReactNode;
+  /** Raw scroll progress (0-1) on every scrub tick, only while pinned — lets a
+   *  visual (e.g. a scroll-scrubbed video) sync itself independently of the
+   *  eased text-crossfade timeline below. */
+  onScrub?: (progress: number) => void;
 };
 
 /**
  * Shared architecture for "The Crack" and "The Break." On capable viewports
- * this pins the stage and scrubs the seam + text stops to scroll position.
+ * this pins the stage and scrubs the visual + text stops to scroll position.
  * On mobile / reduced-motion it renders a normal static stack instead —
  * no pin, no scrub, same copy.
  *
- * The visual is intentionally abstract (see FissureSeam) so this slot can
- * later be swapped for a Three.js scene, an MP4/WebM, or a scroll-controlled
- * image sequence without touching the scroll or copy architecture.
+ * The default visual is intentionally abstract (see FissureSeam) so this
+ * slot can be swapped for a Three.js scene, a video, or a scroll-controlled
+ * image sequence without touching the scroll or copy architecture — pass
+ * `visual`/`fallbackVisual` to do so per section.
  */
-export function PinnedScrollSection({ id, variant, title, stops, textSide = "right" }: PinnedScrollSectionProps) {
+export function PinnedScrollSection({
+  id,
+  variant,
+  title,
+  stops,
+  textSide = "right",
+  visual,
+  fallbackVisual,
+  onScrub,
+}: PinnedScrollSectionProps) {
   const capable = usePinnedScrollCapable();
   const sectionRef = useRef<HTMLDivElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
+  const onScrubRef = useRef(onScrub);
+  onScrubRef.current = onScrub;
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -56,6 +76,7 @@ export function PinnedScrollSection({ id, variant, title, stops, textSide = "rig
           scrub: 1,
           pin,
           anticipatePin: 1,
+          onUpdate: (self) => onScrubRef.current?.(self.progress),
         },
       });
 
@@ -83,13 +104,14 @@ export function PinnedScrollSection({ id, variant, title, stops, textSide = "rig
     return () => ctx.revert();
   }, [capable, variant]);
 
+  const resolvedVisual = visual ?? <FissureSeam variant={variant} />;
+  const resolvedFallbackVisual = fallbackVisual ?? <FissureSeam variant={variant} staticProgress={0.55} />;
+
   if (!capable) {
     return (
       <section id={id} className="border-t border-border py-20 xs:py-28">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-14">
-            <FissureSeam variant={variant} staticProgress={0.55} />
-          </div>
+          <div className="mb-14">{resolvedFallbackVisual}</div>
           <div className="space-y-14">
             {stops.map((stop) => (
               <motion.div
@@ -117,9 +139,7 @@ export function PinnedScrollSection({ id, variant, title, stops, textSide = "rig
     <div ref={sectionRef} id={id} className="relative" style={{ height: `${(stops.length + 1) * 100}vh` }}>
       <div ref={pinRef} className="flex min-h-[100dvh] items-center border-t border-border bg-bg">
         <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-12 px-6 md:grid-cols-2 md:gap-20">
-          <div className={visualOrder}>
-            <FissureSeam variant={variant} />
-          </div>
+          <div className={visualOrder}>{resolvedVisual}</div>
           <div className={`relative min-h-[180px] ${textOrder}`}>
             <span className="sr-only">{title}</span>
             {stops.map((stop) => (
