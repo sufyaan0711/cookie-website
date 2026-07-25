@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+/* Real, fully self-hosted (no external font requests) */
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
+
+/* Temporary open-license stand-ins for Cabinet Grotesk / Satoshi.
+   The @font-face rules below already target the real files by name;
+   drop the licensed woff2s into /public/fonts to replace these silently. */
+@import "@fontsource/space-grotesk/500.css";
+@import "@fontsource/space-grotesk/600.css";
+@import "@fontsource/space-grotesk/700.css";
+@import "@fontsource/manrope/400.css";
+@import "@fontsource/manrope/500.css";
+@import "@fontsource/manrope/600.css";
+
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/fonts/CabinetGrotesk-Variable.woff2") format("woff2-variations");
+  font-weight: 500 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Variable.woff2") format("woff2-variations");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@theme {
+  --color-bg: #121113;
+  --color-surface: #1c1b1e;
+  --color-surface-raised: #232226;
+  --color-border: #2e2b2c;
+  --color-text: #f2efea;
+  --color-muted: #9c9691;
+  --color-accent: #d96b41;
+  --color-accent-soft: #d96b4126;
+
+  --font-display: "Cabinet Grotesk", "Space Grotesk", sans-serif;
+  --font-body: "Satoshi", "Manrope", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --breakpoint-xs: 30rem;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: #121113;
+  }
+
+  a {
+    color: inherit;
+  }
+}
+
+@layer utilities {
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .film-grain {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+  }
+}
