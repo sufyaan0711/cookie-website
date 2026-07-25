@@ -20,8 +20,8 @@ npm run dev
 ## Structure
 
 - `src/sections/` — one file per homepage section (Hero, TheCrack, Ingredients, TheBreak, Craft, Flavors, FinalCta)
-- `src/components/PinnedScrollSection.tsx` — shared architecture behind "The Crack" and "The Break": pins and scrubs on capable viewports (desktop width + no `prefers-reduced-motion`), falls back to a normal static stack everywhere else
-- `src/components/FissureSeam.tsx` — the current placeholder visual for those two scenes (an abstract seam of light, not a literal cookie). Swappable for a Three.js scene, an MP4/WebM, or a scroll-controlled image sequence without touching the scroll or copy architecture
+- `src/components/PinnedScrollSection.tsx` — shared architecture behind "The Crack" and "The Break": pins and scrubs on capable viewports (desktop width + no `prefers-reduced-motion`), falls back to a normal static stack everywhere else. Accepts optional `visual`/`fallbackVisual`/`onScrub` so each section can supply its own video/scrub logic
+- `src/components/FissureSeam.tsx` — the original abstract placeholder (a seam of light, not a literal cookie) both scenes used before their videos landed. No longer used by either section, kept only as a reference/fallback pattern for future scroll-driven scenes
 - `src/index.css` — design tokens (locked dark palette, fonts), Tailwind v4 `@theme`
 
 ## Design tokens
@@ -67,7 +67,14 @@ Unlike the hero, this video sits in a bordered panel (`aspect-[16/11]`, matching
 
 **A note on verifying this in this environment:** the sandboxed Chromium this session's testing tools run on has no H.264 decoder (`canPlayType` returns empty for `video/mp4; codecs="avc1..."`, confirmed directly) — a known limitation of Playwright's bundled open-source Chromium build, unrelated to this code. Both video elements fall back to their poster/first-frame in that browser, which is why the hero video's motion could only ever be spot-checked via its poster too. I validated the scroll-scrub wiring itself by confirming the text crossfade (driven by the same `ScrollTrigger` `onUpdate` tick as `onScrub`) advances correctly through all three stops across the scroll range — real browsers (Chrome, Safari, Firefox) all support H.264/MP4 natively, which is precisely why it's the format used here.
 
+## The Break video
+
+`public/videos/fissure-break.mp4` replaces `FissureSeam` for this section too, following the exact same pattern as The Crack: `TheBreak.tsx` drives `video.currentTime` from `onScrub` on capable viewports, autoplay-loops below that breakpoint, and shows a real static last-frame image (`break-final.jpg`) under `prefers-reduced-motion`. The Crack's own file was not touched to build this — each section owns its stage/video wiring independently, sharing only `PinnedScrollSection`'s generic props.
+
+One deliberate difference from The Crack: the snap throws the two halves out much further (measured across the footage, the peak frame spans x/y ~0-100%, versus the crack's x 15.5-86.7%), so this stage panel is `aspect-[16/9]` — the source footage's native aspect — rather than The Crack's `aspect-[16/11]`. At that aspect, `object-fit: cover` needs no crop at all (container and content aspect match exactly), which is what "no awkward cropping" required here; forcing it into the narrower box would have clipped both halves at the moment they're furthest apart.
+
 ## Pending media assets
 
 - `public/fonts/CabinetGrotesk-Variable.woff2` and `public/fonts/Satoshi-Variable.woff2` — see above.
-- "The Break" still renders the abstract `FissureSeam` placeholder rather than a real cookie asset, pending that scene/video.
+
+All three cinematic assets (hero, crack, break) are now in place.
