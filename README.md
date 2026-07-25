@@ -46,10 +46,19 @@ Cabinet Grotesk and Satoshi (both Fontshare-exclusive) could not be downloaded i
 
 Drop the licensed files at those exact paths and the site switches to them automatically, no code changes needed. Until then, the CSS fallback stack renders **Space Grotesk** (display) and **Manrope** (body) — both self-hosted via `@fontsource` — as open-license stand-ins. **JetBrains Mono** is the real, final font already (also via `@fontsource`).
 
+## Hero video
+
+`public/videos/fissure-hero.mp4` is live, with `public/images/hero-poster.jpg` generated from its first frame as the poster fallback. The video autoplays muted/looped/`playsInline` with `preload="metadata"`, and is paused via JS under `prefers-reduced-motion` (falling back to the static poster frame).
+
+The cookie in the source footage sits roughly centred (x 40-73%, y 16-75% of the 1920x1080 frame). `object-position` is tuned per breakpoint in `src/sections/Hero.tsx`:
+
+- **Mobile/tablet** (`<1024px`): cover-cropping only leaves a narrow horizontal slice regardless of position, so these tiers just keep the cookie centred in it. The headline sits over the lower part of the frame here, protected by the bottom scrim.
+- **Desktop** (`≥1024px`): the crop is much milder (video and viewport aspect are close), so the position is shifted well past the cookie, opening a clean left column for the headline instead of sitting over it.
+
+Layering (back to front): video → soft edge mask (blends the video's own dark background into the page `#121113` at the outer few percent only) → short top scrim (nav legibility) → bottom scrim (text legibility + fade into the next section, taller/darker on mobile where the copy sits over the cookie, subtle on desktop where it's mostly just the section transition). No full-frame overlay — the cookie stays bright and detailed everywhere except the bottom band the copy occupies.
+
 ## Pending media assets
 
-- `public/videos/fissure-hero.mp4` — the hero video. The `<video>` element in `src/sections/Hero.tsx` is already wired for it (autoplay, loop, muted, `playsInline`, `object-cover`), fading in over the current gradient placeholder once it loads.
-- `public/images/hero-poster.jpg` — poster frame for the hero video (first-paint fallback / no-JS fallback).
 - `public/fonts/CabinetGrotesk-Variable.woff2` and `public/fonts/Satoshi-Variable.woff2` — see above.
 
-"The Crack" and "The Break" currently render an abstract placeholder (`FissureSeam`) rather than any real cookie asset. That's intentional pending the finished 3D scene, video, or image sequence.
+"The Crack" and "The Break" still render an abstract placeholder (`FissureSeam`) rather than any real cookie asset. That's intentional pending the finished 3D scene, video, or image sequence.
